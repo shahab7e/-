@@ -1,662 +1,154 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منظومه خدمات هوشمند</title>
-                <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-
-    
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #F0F2F5; --surface: #FFFFFF; --border: #E2E8F0;
+            --text-primary: #0F172A; --text-secondary: #475569; --text-muted: #94A3B8;
+            --accent: #2563EB; --accent-soft: #EFF6FF;
+            --green: #16A34A; --green-bg: #F0FDF4;
+            --amber: #D97706; --amber-bg: #FFFBEB;
+            --blue: #0284C7; --blue-bg: #F0F9FF;
+            --font: "Vazirmatn", sans-serif;
+        }
+        html, body { height: 100%; overflow: hidden; font-family: var(--font); background: var(--bg); }
+        #app { display: flex; flex-direction: column; height: 100vh; }
+        #topbar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; height: 52px; flex-shrink: 0;
+            background: var(--surface); border-bottom: 1px solid var(--border);
+        }
+        .brand { display: flex; align-items: center; gap: 9px; }
+        .brand-logo {
+            width: 30px; height: 30px; background: var(--accent);
+            border-radius: 7px; display: flex; align-items: center; justify-content: center;
+        }
+        .brand-logo svg { width: 16px; height: 16px; stroke: white; fill: none; stroke-width: 2; }
+        .brand-name { font-size: 0.88rem; font-weight: 700; color: var(--text-primary); }
+        .brand-sub  { font-size: 0.7rem; color: var(--text-muted); }
+        .topbar-hint {
+            display: flex; align-items: center; gap: 5px;
+            padding: 5px 11px; background: var(--accent-soft);
+            border-radius: 20px; font-size: 0.72rem; font-weight: 500; color: var(--accent);
+        }
+        .topbar-hint svg { width: 13px; height: 13px; stroke: var(--accent); fill: none; stroke-width: 2; }
+        #body { display: flex; flex: 1; overflow: hidden; }
+        #sidebar {
+            width: 300px; flex-shrink: 0; background: var(--surface);
+            border-left: 1px solid var(--border); overflow-y: auto; display: flex; flex-direction: column;
+        }
+        .sb-header { height: 43px; padding: 0 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; }
+        .sb-header-title { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+        .svc-card { display: flex; flex-direction: column; animation: fadeSlide .18s ease-out; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .svc-title-block { padding: 16px; border-bottom: 1px solid var(--border); }
+        .svc-name { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); line-height: 1.5; margin-bottom: 10px; }
+        .sbadge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
+        .sbadge-dot { width: 5px; height: 5px; border-radius: 50%; }
+        .s-active { background: var(--green-bg); color: var(--green); } .s-active .sbadge-dot { background: var(--green); }
+        .s-ready  { background: var(--blue-bg);  color: var(--blue); } .s-ready  .sbadge-dot { background: var(--blue); }
+        .s-soon   { background: var(--amber-bg); color: var(--amber); } .s-soon   .sbadge-dot { background: var(--amber); }
+        .svc-desc-block { padding: 14px 16px; border-bottom: 1px solid var(--border); background: #FAFBFC; }
+        .block-label { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; }
+        .svc-desc { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.85; text-align: justify; }
+        .meta-row { display: flex; flex-direction: column; gap: 3px; padding: 11px 16px; border-bottom: 1px solid var(--border); }
+        .meta-val { font-size: 0.82rem; color: var(--text-secondary); font-weight: 500; }
+        #chart-wrap { flex: 1; position: relative; overflow: hidden; background: var(--surface); }
+        #col-headers {
+            position: absolute; top: 0; left: 0; right: 0; height: 43px; z-index: 10;
+            display: flex; align-items: center; border-bottom: 1px solid var(--border); background: var(--surface);
+        }
+        .col-hdr { position: absolute; font-size: 0.73rem; font-weight: 600; color: var(--text-secondary); transform: translateX(-50%); }
+        #chart-canvas { width: 100%; height: 100%; }
+        .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 20px; text-align: center; gap: 12px; }
+        .empty-icon { width: 48px; height: 48px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; }
+        .empty-icon svg { width: 22px; height: 22px; stroke: var(--text-muted); fill: none; stroke-width: 1.5; }
+    </style>
 </head>
 <body>
-
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
-<style>
-    body, html { margin: 0; padding: 0; font-family: 'Vazirmatn', sans-serif !important; background: #f4f7f6; overflow: hidden; }
-    #wrapper { display: flex; flex-direction: row-reverse; height: 100vh; width: 100vw; }
-    #chart-area { flex: 1; position: relative; height: 100vh; overflow: hidden; }
-    #sidebar { 
-        width: 350px; background: white; border-left: 2px solid #eee; 
-        padding: 30px 20px; overflow-y: auto; box-shadow: -5px 0 15px rgba(0,0,0,0.02);
-        text-align: right; direction: rtl; z-index: 100;
-    }
-    .info-group { margin-bottom: 18px; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; }
-    .info-label { font-weight: 700; color: #264653; font-size: 0.85rem; margin-bottom: 6px; display: block; }
-    .info-text { color: #555; font-size: 0.95rem; line-height: 1.7; text-align: justify; }
-    h2 { color: #2a9d8f; font-size: 1.3rem; margin-top: 0; line-height: 1.4; border-right: 5px solid #e9c46a; padding-right: 12px; }
-    .empty-state { color: #aaa; text-align: center; margin-top: 100px; line-height: 2; }
-    
-    .column-headers {
-        position: absolute;
-        top: 25px;
-        left: 5%; 
-        right: 22%; 
-        height: 40px;
-        z-index: 50;
-        pointer-events: none;
-    }
-    .header-badge {
-        position: absolute;
-        color: #264653;
-        font-weight: 700;
-        font-size: 1.1rem;
-        white-space: nowrap;
-        transform: translateX(calc(-50% + 10px));
-    }
-</style>
-
-<div id="wrapper">
-    <div id="sidebar">
-        <div id="content-area">
-            <div class="empty-state">
-                <p>برای مشاهده اطلاعات کامل هر خدمت،<br>روی گره آن در نمودار <b>کلیک</b> کنید.</p>
+<div id="app">
+    <header id="topbar">
+        <div class="brand">
+            <div class="brand-logo"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+            <div><div class="brand-name">منظومه خدمات هوشمند</div><div class="brand-sub">اتاق بازرگانی تهران &mdash; آری</div></div>
+        </div>
+        <div class="topbar-hint">برای مشاهده جزئیات، روی گره کلیک کنید</div>
+    </header>
+    <div id="body">
+        <div id="chart-wrap">
+            <div id="col-headers">
+                <div class="col-hdr" id="hdr-left">واحد درخواست‌دهنده</div>
+                <div class="col-hdr" id="hdr-mid">نام خدمت</div>
+                <div class="col-hdr" id="hdr-right">دسته‌بندی کلان</div>
             </div>
+            <div id="chart-canvas"></div>
         </div>
+        <aside id="sidebar">
+            <div class="sb-header"><div class="sb-header-title">جزئیات خدمت</div></div>
+            <div id="content-area">
+                <div class="empty-state">
+                    <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+                    <div class="empty-title">خدمتی انتخاب نشده</div>
+                </div>
+            </div>
+        </aside>
     </div>
-    <div id="chart-area">
-        <div class="column-headers">
-            <div class="header-badge" style="left: 0;">واحد درخواست‌دهنده</div>
-            <div class="header-badge" style="left: 50%;">نام خدمت</div>
-            <div class="header-badge" style="left: 100%;">دسته‌بندی کلان</div>
-        </div>
-
-    <div id="e3e4cec725dd4ba2b469dcaf9621b338" class="chart-container" style="width:100%; height:100vh; "></div>
-    <script>
-        var chart_e3e4cec725dd4ba2b469dcaf9621b338 = echarts.init(
-            document.getElementById('e3e4cec725dd4ba2b469dcaf9621b338'), 'white', {renderer: 'canvas', locale: 'ZH'});
-        var option_e3e4cec725dd4ba2b469dcaf9621b338 = {
-    "animation": true,
-    "animationThreshold": 2000,
-    "animationDuration": 1000,
-    "animationEasing": "cubicOut",
-    "animationDelay": 0,
-    "animationDurationUpdate": 300,
-    "animationEasingUpdate": "cubicOut",
-    "animationDelayUpdate": 0,
-    "aria": {
-        "enabled": false
-    },
-    "series": [
-        {
-            "type": "sankey",
-            "data": [
-                {
-                    "name": "\u0627\u062a\u0627\u0642 \u062f\u06cc\u062c\u06cc\u062a\u0627\u0644",
-                    "itemStyle": {
-                        "color": "#023047"
-                    }
-                },
-                {
-                    "name": "\u0645\u0639\u0627\u0648\u0646\u062a \u0627\u0645\u0648\u0631 \u0628\u06cc\u0646 \u0627\u0644\u0645\u0644\u0644",
-                    "itemStyle": {
-                        "color": "#219EBC"
-                    }
-                },
-                {
-                    "name": "\u0634\u0648\u0631\u0627\u06cc \u06af\u0641\u062a\u06af\u0648",
-                    "itemStyle": {
-                        "color": "#8ECAE6"
-                    }
-                },
-                {
-                    "name": "\u0631\u0648\u0627\u0628\u0637 \u0639\u0645\u0648\u0645\u06cc \u0627\u062a\u0627\u0642 \u062a\u0647\u0631\u0627\u0646",
-                    "itemStyle": {
-                        "color": "#FFB703"
-                    }
-                },
-                {
-                    "name": "\u0645\u0639\u0627\u0648\u0646\u062a \u062a\u0648\u0633\u0639\u0647  \u0639\u0636\u0648\u06cc\u062a",
-                    "itemStyle": {
-                        "color": "#cccccc"
-                    }
-                },
-                {
-                    "name": "\u0645\u0631\u06a9\u0632 \u0646\u0648\u0622\u0648\u0631\u06cc",
-                    "itemStyle": {
-                        "color": "#cccccc"
-                    }
-                },
-                {
-                    "name": "\u0645\u0639\u0627\u0648\u0646\u062a \u0645\u0637\u0627\u0644\u0639\u0627\u062a \u0627\u0642\u062a\u0635\u0627\u062f\u06cc ",
-                    "itemStyle": {
-                        "color": "#cccccc"
-                    }
-                },
-                {
-                    "name": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u0646\u0645\u0627\u06cc \u0628\u0627\u0632\u0631\u06af\u0627\u0646\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u0627\u06cc\u0647)",
-                    "itemStyle": {
-                        "color": "#264653"
-                    }
-                },
-                {
-                    "name": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u0634\u0631\u06a9\u0627\u06cc \u062a\u062c\u0627\u0631\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u0627\u06cc\u0647)",
-                    "itemStyle": {
-                        "color": "#264653"
-                    }
-                },
-                {
-                    "name": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u0622\u0645\u0627\u0631 \u06af\u0645\u0631\u06a9 \u0647\u0627\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u0627\u06cc\u0647)",
-                    "itemStyle": {
-                        "color": "#264653"
-                    }
-                },
-                {
-                    "name": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u06a9\u0627\u0644\u0627\u0647\u0627\u06cc \u062a\u062c\u0627\u0631\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u0627\u06cc\u0647)",
-                    "itemStyle": {
-                        "color": "#264653"
-                    }
-                },
-                {
-                    "name": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u0646\u0645\u0627\u06cc \u0628\u0627\u0632\u0631\u06af\u0627\u0646\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u06cc\u0634\u0631\u0641\u062a\u0647)",
-                    "itemStyle": {
-                        "color": "#264653"
-                    }
-                },
-                {
-                    "name": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u0634\u0631\u06a9\u0627\u06cc \u062a\u062c\u0627\u0631\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u06cc\u0634\u0631\u0641\u062a\u0647)",
-                    "itemStyle": {
-                        "color": "#264653"
-                    }
-                },
-                {
-                    "name": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u0622\u0645\u0627\u0631 \u06af\u0645\u0631\u06a9 \u0647\u0627\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u06cc\u0634\u0631\u0641\u062a\u0647)",
-                    "itemStyle": {
-                        "color": "#264653"
-                    }
-                },
-                {
-                    "name": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u06a9\u0627\u0644\u0627\u0647\u0627\u06cc \u062a\u062c\u0627\u0631\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u06cc\u0634\u0631\u0641\u062a\u0647)",
-                    "itemStyle": {
-                        "color": "#264653"
-                    }
-                },
-                {
-                    "name": "\u062a\u0627\u0631\u06cc\u062e\u0686\u0647 \u062a\u063a\u06cc\u06cc\u0631\u0627\u062a \u062d\u0642\u0648\u0642 \u06af\u0645\u0631\u06a9\u06cc \u06a9\u0627\u0644\u0627\u0647\u0627",
-                    "itemStyle": {
-                        "color": "#264653"
-                    }
-                },
-                {
-                    "name": "\u0628\u0648\u0644\u062a\u0646 \u0647\u0641\u062a\u06af\u06cc \u0628\u0627\u0632\u0631\u06af\u0627\u0646\u06cc",
-                    "itemStyle": {
-                        "color": "#2A9D8F"
-                    }
-                },
-                {
-                    "name": "\u067e\u0633\u062a \u0647\u0627\u06cc \u0627\u06cc\u0646\u0633\u062a\u0627\u06af\u0631\u0627\u0645\u06cc",
-                    "itemStyle": {
-                        "color": "#2A9D8F"
-                    }
-                },
-                {
-                    "name": "\u06a9\u062a\u0627\u0628 \u0633\u0627\u0644 \u0628\u0627\u0632\u0631\u06af\u0627\u0646\u06cc \u0627\u06cc\u0631\u0627\u0646",
-                    "itemStyle": {
-                        "color": "#2A9D8F"
-                    }
-                },
-                {
-                    "name": "\u062a\u062f\u0648\u06cc\u0646 \u0628\u0648\u0644\u062a\u0646 \u0628\u0627\u0632\u0631\u06af\u0627\u0646\u06cc \u062f\u0627\u062f\u0647 \u0645\u062d\u0648\u0631 (\u0647\u0641\u062a\u06af\u06cc/\u0645\u0627\u0647\u0627\u0646\u0647/\u0641\u0635\u0644\u06cc/\u0633\u0627\u0644\u0627\u0646\u0647)",
-                    "itemStyle": {
-                        "color": "#2A9D8F"
-                    }
-                },
-                {
-                    "name": "\u0637\u0628\u0642\u0647 \u0628\u0646\u062f\u06cc \u0627\u0639\u0636\u0627\u06cc \u0627\u062a\u0627\u0642 \u062a\u0647\u0631\u0627\u0646",
-                    "itemStyle": {
-                        "color": "#E9C46A"
-                    }
-                },
-                {
-                    "name": "\u0627\u0631\u0627\u0626\u0647 \u067e\u0631\u0648\u0641\u0627\u06cc\u0644 \u062a\u0641\u0635\u06cc\u0644\u06cc \u0628\u0627\u0632\u0631\u06af\u0627\u0646 ",
-                    "itemStyle": {
-                        "color": "#E9C46A"
-                    }
-                },
-                {
-                    "name": "\u0633\u06cc\u06af\u0646\u0627\u0644 \u06cc\u0627\u0628 \u0628\u0627\u0632\u0631\u06af\u0627\u0646\u06cc",
-                    "itemStyle": {
-                        "color": "#E9C46A"
-                    }
-                },
-                {
-                    "name": "\u067e\u06cc\u0634\u0646\u0647\u0627\u062f \u0647\u06cc\u0626\u062a\u200c\u0647\u0627\u06cc \u062a\u062c\u0627\u0631\u06cc",
-                    "itemStyle": {
-                        "color": "#E9C46A"
-                    }
-                },
-                {
-                    "name": "\u0686\u062a\u200c\u0628\u0627\u062a \u0631\u0627\u0647\u0646\u0645\u0627\u06cc \u0645\u0631\u0627\u062c\u0639\u06cc\u0646 \u0627\u062a\u0627\u0642",
-                    "itemStyle": {
-                        "color": "#F4A261"
-                    }
-                },
-                {
-                    "name": "\u062f\u0633\u062a\u06cc\u0627\u0631 \u0647\u0648\u0634\u0645\u0646\u062f \u062a\u062d\u0644\u06cc\u0644 \u062f\u0627\u062f\u0647\u200c\u0647\u0627\u06cc \u062a\u062c\u0627\u0631\u062a",
-                    "itemStyle": {
-                        "color": "#F4A261"
-                    }
-                },
-                {
-                    "name": "\u062f\u0633\u062a\u06cc\u0627\u0631 \u0647\u0648\u0634\u0645\u0646\u062f \u0645\u0642\u0631\u0631\u0627\u062a \u062a\u062c\u0627\u0631\u062a",
-                    "itemStyle": {
-                        "color": "#F4A261"
-                    }
-                },
-                {
-                    "name": "\u06a9\u062f \u06a9\u0627\u0644\u0627 \u06cc\u0627\u0628",
-                    "itemStyle": {
-                        "color": "#F4A261"
-                    }
-                },
-                {
-                    "name": "\u0686\u062a\u200c\u0628\u0627\u062a \u06a9\u0627\u0644 \u0633\u0646\u062a\u0631",
-                    "itemStyle": {
-                        "color": "#F4A261"
-                    }
-                },
-                {
-                    "name": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646\u200c\u0647\u0627\u06cc \u062a\u062d\u0644\u06cc\u0644\u06cc",
-                    "itemStyle": {
-                        "color": "#264653"
-                    }
-                },
-                {
-                    "name": "\u062a\u0648\u0644\u06cc\u062f \u0645\u062d\u062a\u0648\u0627\u06cc \u062f\u0627\u062f\u0647 \u0645\u062d\u0648\u0631",
-                    "itemStyle": {
-                        "color": "#2A9D8F"
-                    }
-                },
-                {
-                    "name": "\u0628\u06cc\u0646\u0634 \u062f\u0627\u062f\u0647 \u0645\u062d\u0648\u0631",
-                    "itemStyle": {
-                        "color": "#E9C46A"
-                    }
-                },
-                {
-                    "name": "\u062f\u0633\u062a\u06cc\u0627\u0631\u0647\u0627\u06cc \u0647\u0648\u0634\u0645\u0646\u062f",
-                    "itemStyle": {
-                        "color": "#F4A261"
-                    }
-                }
-            ],
-            "links": [
-                {
-                    "source": "\u0627\u062a\u0627\u0642 \u062f\u06cc\u062c\u06cc\u062a\u0627\u0644",
-                    "target": "\u0628\u0648\u0644\u062a\u0646 \u0647\u0641\u062a\u06af\u06cc \u0628\u0627\u0632\u0631\u06af\u0627\u0646\u06cc",
-                    "value": 1
-                },
-                {
-                    "source": "\u0627\u062a\u0627\u0642 \u062f\u06cc\u062c\u06cc\u062a\u0627\u0644",
-                    "target": "\u062f\u0633\u062a\u06cc\u0627\u0631 \u0647\u0648\u0634\u0645\u0646\u062f \u062a\u062d\u0644\u06cc\u0644 \u062f\u0627\u062f\u0647\u200c\u0647\u0627\u06cc \u062a\u062c\u0627\u0631\u062a",
-                    "value": 1
-                },
-                {
-                    "source": "\u0627\u062a\u0627\u0642 \u062f\u06cc\u062c\u06cc\u062a\u0627\u0644",
-                    "target": "\u067e\u0633\u062a \u0647\u0627\u06cc \u0627\u06cc\u0646\u0633\u062a\u0627\u06af\u0631\u0627\u0645\u06cc",
-                    "value": 1
-                },
-                {
-                    "source": "\u0627\u062a\u0627\u0642 \u062f\u06cc\u062c\u06cc\u062a\u0627\u0644",
-                    "target": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u0622\u0645\u0627\u0631 \u06af\u0645\u0631\u06a9 \u0647\u0627\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u0627\u06cc\u0647)",
-                    "value": 1
-                },
-                {
-                    "source": "\u0627\u062a\u0627\u0642 \u062f\u06cc\u062c\u06cc\u062a\u0627\u0644",
-                    "target": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u0634\u0631\u06a9\u0627\u06cc \u062a\u062c\u0627\u0631\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u0627\u06cc\u0647)",
-                    "value": 1
-                },
-                {
-                    "source": "\u0627\u062a\u0627\u0642 \u062f\u06cc\u062c\u06cc\u062a\u0627\u0644",
-                    "target": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u0646\u0645\u0627\u06cc \u0628\u0627\u0632\u0631\u06af\u0627\u0646\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u0627\u06cc\u0647)",
-                    "value": 1
-                },
-                {
-                    "source": "\u0627\u062a\u0627\u0642 \u062f\u06cc\u062c\u06cc\u062a\u0627\u0644",
-                    "target": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u06a9\u0627\u0644\u0627\u0647\u0627\u06cc \u062a\u062c\u0627\u0631\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u0627\u06cc\u0647)",
-                    "value": 1
-                },
-                {
-                    "source": "\u0627\u062a\u0627\u0642 \u062f\u06cc\u062c\u06cc\u062a\u0627\u0644",
-                    "target": "\u06a9\u062f \u06a9\u0627\u0644\u0627 \u06cc\u0627\u0628",
-                    "value": 1
-                },
-                {
-                    "source": "\u0631\u0648\u0627\u0628\u0637 \u0639\u0645\u0648\u0645\u06cc \u0627\u062a\u0627\u0642 \u062a\u0647\u0631\u0627\u0646",
-                    "target": "\u062a\u062f\u0648\u06cc\u0646 \u0628\u0648\u0644\u062a\u0646 \u0628\u0627\u0632\u0631\u06af\u0627\u0646\u06cc \u062f\u0627\u062f\u0647 \u0645\u062d\u0648\u0631 (\u0647\u0641\u062a\u06af\u06cc/\u0645\u0627\u0647\u0627\u0646\u0647/\u0641\u0635\u0644\u06cc/\u0633\u0627\u0644\u0627\u0646\u0647)",
-                    "value": 1
-                },
-                {
-                    "source": "\u0631\u0648\u0627\u0628\u0637 \u0639\u0645\u0648\u0645\u06cc \u0627\u062a\u0627\u0642 \u062a\u0647\u0631\u0627\u0646",
-                    "target": "\u06a9\u062a\u0627\u0628 \u0633\u0627\u0644 \u0628\u0627\u0632\u0631\u06af\u0627\u0646\u06cc \u0627\u06cc\u0631\u0627\u0646",
-                    "value": 1
-                },
-                {
-                    "source": "\u0634\u0648\u0631\u0627\u06cc \u06af\u0641\u062a\u06af\u0648",
-                    "target": "\u062a\u0627\u0631\u06cc\u062e\u0686\u0647 \u062a\u063a\u06cc\u06cc\u0631\u0627\u062a \u062d\u0642\u0648\u0642 \u06af\u0645\u0631\u06a9\u06cc \u06a9\u0627\u0644\u0627\u0647\u0627",
-                    "value": 1
-                },
-                {
-                    "source": "\u0645\u0631\u06a9\u0632 \u0646\u0648\u0622\u0648\u0631\u06cc",
-                    "target": "\u0627\u0631\u0627\u0626\u0647 \u067e\u0631\u0648\u0641\u0627\u06cc\u0644 \u062a\u0641\u0635\u06cc\u0644\u06cc \u0628\u0627\u0632\u0631\u06af\u0627\u0646 ",
-                    "value": 1
-                },
-                {
-                    "source": "\u0645\u0631\u06a9\u0632 \u0646\u0648\u0622\u0648\u0631\u06cc",
-                    "target": "\u062f\u0633\u062a\u06cc\u0627\u0631 \u0647\u0648\u0634\u0645\u0646\u062f \u0645\u0642\u0631\u0631\u0627\u062a \u062a\u062c\u0627\u0631\u062a",
-                    "value": 1
-                },
-                {
-                    "source": "\u0645\u0631\u06a9\u0632 \u0646\u0648\u0622\u0648\u0631\u06cc",
-                    "target": "\u0686\u062a\u200c\u0628\u0627\u062a \u0631\u0627\u0647\u0646\u0645\u0627\u06cc \u0645\u0631\u0627\u062c\u0639\u06cc\u0646 \u0627\u062a\u0627\u0642",
-                    "value": 1
-                },
-                {
-                    "source": "\u0645\u0631\u06a9\u0632 \u0646\u0648\u0622\u0648\u0631\u06cc",
-                    "target": "\u0686\u062a\u200c\u0628\u0627\u062a \u06a9\u0627\u0644 \u0633\u0646\u062a\u0631",
-                    "value": 1
-                },
-                {
-                    "source": "\u0645\u0639\u0627\u0648\u0646\u062a \u0627\u0645\u0648\u0631 \u0628\u06cc\u0646 \u0627\u0644\u0645\u0644\u0644",
-                    "target": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u0622\u0645\u0627\u0631 \u06af\u0645\u0631\u06a9 \u0647\u0627\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u06cc\u0634\u0631\u0641\u062a\u0647)",
-                    "value": 1
-                },
-                {
-                    "source": "\u0645\u0639\u0627\u0648\u0646\u062a \u0627\u0645\u0648\u0631 \u0628\u06cc\u0646 \u0627\u0644\u0645\u0644\u0644",
-                    "target": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u0634\u0631\u06a9\u0627\u06cc \u062a\u062c\u0627\u0631\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u06cc\u0634\u0631\u0641\u062a\u0647)",
-                    "value": 1
-                },
-                {
-                    "source": "\u0645\u0639\u0627\u0648\u0646\u062a \u0627\u0645\u0648\u0631 \u0628\u06cc\u0646 \u0627\u0644\u0645\u0644\u0644",
-                    "target": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u0646\u0645\u0627\u06cc \u0628\u0627\u0632\u0631\u06af\u0627\u0646\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u06cc\u0634\u0631\u0641\u062a\u0647)",
-                    "value": 1
-                },
-                {
-                    "source": "\u0645\u0639\u0627\u0648\u0646\u062a \u0627\u0645\u0648\u0631 \u0628\u06cc\u0646 \u0627\u0644\u0645\u0644\u0644",
-                    "target": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u06a9\u0627\u0644\u0627\u0647\u0627\u06cc \u062a\u062c\u0627\u0631\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u06cc\u0634\u0631\u0641\u062a\u0647)",
-                    "value": 1
-                },
-                {
-                    "source": "\u0645\u0639\u0627\u0648\u0646\u062a \u0627\u0645\u0648\u0631 \u0628\u06cc\u0646 \u0627\u0644\u0645\u0644\u0644",
-                    "target": "\u067e\u06cc\u0634\u0646\u0647\u0627\u062f \u0647\u06cc\u0626\u062a\u200c\u0647\u0627\u06cc \u062a\u062c\u0627\u0631\u06cc",
-                    "value": 1
-                },
-                {
-                    "source": "\u0645\u0639\u0627\u0648\u0646\u062a \u062a\u0648\u0633\u0639\u0647  \u0639\u0636\u0648\u06cc\u062a",
-                    "target": "\u0637\u0628\u0642\u0647 \u0628\u0646\u062f\u06cc \u0627\u0639\u0636\u0627\u06cc \u0627\u062a\u0627\u0642 \u062a\u0647\u0631\u0627\u0646",
-                    "value": 1
-                },
-                {
-                    "source": "\u0645\u0639\u0627\u0648\u0646\u062a \u0645\u0637\u0627\u0644\u0639\u0627\u062a \u0627\u0642\u062a\u0635\u0627\u062f\u06cc ",
-                    "target": "\u0633\u06cc\u06af\u0646\u0627\u0644 \u06cc\u0627\u0628 \u0628\u0627\u0632\u0631\u06af\u0627\u0646\u06cc",
-                    "value": 1
-                },
-                {
-                    "source": "\u0627\u0631\u0627\u0626\u0647 \u067e\u0631\u0648\u0641\u0627\u06cc\u0644 \u062a\u0641\u0635\u06cc\u0644\u06cc \u0628\u0627\u0632\u0631\u06af\u0627\u0646 ",
-                    "target": "\u0628\u06cc\u0646\u0634 \u062f\u0627\u062f\u0647 \u0645\u062d\u0648\u0631",
-                    "value": 1
-                },
-                {
-                    "source": "\u0628\u0648\u0644\u062a\u0646 \u0647\u0641\u062a\u06af\u06cc \u0628\u0627\u0632\u0631\u06af\u0627\u0646\u06cc",
-                    "target": "\u062a\u0648\u0644\u06cc\u062f \u0645\u062d\u062a\u0648\u0627\u06cc \u062f\u0627\u062f\u0647 \u0645\u062d\u0648\u0631",
-                    "value": 1
-                },
-                {
-                    "source": "\u062a\u0627\u0631\u06cc\u062e\u0686\u0647 \u062a\u063a\u06cc\u06cc\u0631\u0627\u062a \u062d\u0642\u0648\u0642 \u06af\u0645\u0631\u06a9\u06cc \u06a9\u0627\u0644\u0627\u0647\u0627",
-                    "target": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646\u200c\u0647\u0627\u06cc \u062a\u062d\u0644\u06cc\u0644\u06cc",
-                    "value": 1
-                },
-                {
-                    "source": "\u062a\u062f\u0648\u06cc\u0646 \u0628\u0648\u0644\u062a\u0646 \u0628\u0627\u0632\u0631\u06af\u0627\u0646\u06cc \u062f\u0627\u062f\u0647 \u0645\u062d\u0648\u0631 (\u0647\u0641\u062a\u06af\u06cc/\u0645\u0627\u0647\u0627\u0646\u0647/\u0641\u0635\u0644\u06cc/\u0633\u0627\u0644\u0627\u0646\u0647)",
-                    "target": "\u062a\u0648\u0644\u06cc\u062f \u0645\u062d\u062a\u0648\u0627\u06cc \u062f\u0627\u062f\u0647 \u0645\u062d\u0648\u0631",
-                    "value": 1
-                },
-                {
-                    "source": "\u062f\u0633\u062a\u06cc\u0627\u0631 \u0647\u0648\u0634\u0645\u0646\u062f \u062a\u062d\u0644\u06cc\u0644 \u062f\u0627\u062f\u0647\u200c\u0647\u0627\u06cc \u062a\u062c\u0627\u0631\u062a",
-                    "target": "\u062f\u0633\u062a\u06cc\u0627\u0631\u0647\u0627\u06cc \u0647\u0648\u0634\u0645\u0646\u062f",
-                    "value": 1
-                },
-                {
-                    "source": "\u062f\u0633\u062a\u06cc\u0627\u0631 \u0647\u0648\u0634\u0645\u0646\u062f \u0645\u0642\u0631\u0631\u0627\u062a \u062a\u062c\u0627\u0631\u062a",
-                    "target": "\u062f\u0633\u062a\u06cc\u0627\u0631\u0647\u0627\u06cc \u0647\u0648\u0634\u0645\u0646\u062f",
-                    "value": 1
-                },
-                {
-                    "source": "\u0633\u06cc\u06af\u0646\u0627\u0644 \u06cc\u0627\u0628 \u0628\u0627\u0632\u0631\u06af\u0627\u0646\u06cc",
-                    "target": "\u0628\u06cc\u0646\u0634 \u062f\u0627\u062f\u0647 \u0645\u062d\u0648\u0631",
-                    "value": 1
-                },
-                {
-                    "source": "\u0637\u0628\u0642\u0647 \u0628\u0646\u062f\u06cc \u0627\u0639\u0636\u0627\u06cc \u0627\u062a\u0627\u0642 \u062a\u0647\u0631\u0627\u0646",
-                    "target": "\u0628\u06cc\u0646\u0634 \u062f\u0627\u062f\u0647 \u0645\u062d\u0648\u0631",
-                    "value": 1
-                },
-                {
-                    "source": "\u067e\u0633\u062a \u0647\u0627\u06cc \u0627\u06cc\u0646\u0633\u062a\u0627\u06af\u0631\u0627\u0645\u06cc",
-                    "target": "\u062a\u0648\u0644\u06cc\u062f \u0645\u062d\u062a\u0648\u0627\u06cc \u062f\u0627\u062f\u0647 \u0645\u062d\u0648\u0631",
-                    "value": 1
-                },
-                {
-                    "source": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u0622\u0645\u0627\u0631 \u06af\u0645\u0631\u06a9 \u0647\u0627\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u0627\u06cc\u0647)",
-                    "target": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646\u200c\u0647\u0627\u06cc \u062a\u062d\u0644\u06cc\u0644\u06cc",
-                    "value": 1
-                },
-                {
-                    "source": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u0622\u0645\u0627\u0631 \u06af\u0645\u0631\u06a9 \u0647\u0627\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u06cc\u0634\u0631\u0641\u062a\u0647)",
-                    "target": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646\u200c\u0647\u0627\u06cc \u062a\u062d\u0644\u06cc\u0644\u06cc",
-                    "value": 1
-                },
-                {
-                    "source": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u0634\u0631\u06a9\u0627\u06cc \u062a\u062c\u0627\u0631\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u0627\u06cc\u0647)",
-                    "target": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646\u200c\u0647\u0627\u06cc \u062a\u062d\u0644\u06cc\u0644\u06cc",
-                    "value": 1
-                },
-                {
-                    "source": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u0634\u0631\u06a9\u0627\u06cc \u062a\u062c\u0627\u0631\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u06cc\u0634\u0631\u0641\u062a\u0647)",
-                    "target": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646\u200c\u0647\u0627\u06cc \u062a\u062d\u0644\u06cc\u0644\u06cc",
-                    "value": 1
-                },
-                {
-                    "source": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u0646\u0645\u0627\u06cc \u0628\u0627\u0632\u0631\u06af\u0627\u0646\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u0627\u06cc\u0647)",
-                    "target": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646\u200c\u0647\u0627\u06cc \u062a\u062d\u0644\u06cc\u0644\u06cc",
-                    "value": 1
-                },
-                {
-                    "source": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u0646\u0645\u0627\u06cc \u0628\u0627\u0632\u0631\u06af\u0627\u0646\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u06cc\u0634\u0631\u0641\u062a\u0647)",
-                    "target": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646\u200c\u0647\u0627\u06cc \u062a\u062d\u0644\u06cc\u0644\u06cc",
-                    "value": 1
-                },
-                {
-                    "source": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u06a9\u0627\u0644\u0627\u0647\u0627\u06cc \u062a\u062c\u0627\u0631\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u0627\u06cc\u0647)",
-                    "target": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646\u200c\u0647\u0627\u06cc \u062a\u062d\u0644\u06cc\u0644\u06cc",
-                    "value": 1
-                },
-                {
-                    "source": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646 \u06a9\u0627\u0644\u0627\u0647\u0627\u06cc \u062a\u062c\u0627\u0631\u06cc \u0627\u06cc\u0631\u0627\u0646 (\u067e\u06cc\u0634\u0631\u0641\u062a\u0647)",
-                    "target": "\u067e\u06cc\u0634\u062e\u0648\u0627\u0646\u200c\u0647\u0627\u06cc \u062a\u062d\u0644\u06cc\u0644\u06cc",
-                    "value": 1
-                },
-                {
-                    "source": "\u067e\u06cc\u0634\u0646\u0647\u0627\u062f \u0647\u06cc\u0626\u062a\u200c\u0647\u0627\u06cc \u062a\u062c\u0627\u0631\u06cc",
-                    "target": "\u0628\u06cc\u0646\u0634 \u062f\u0627\u062f\u0647 \u0645\u062d\u0648\u0631",
-                    "value": 1
-                },
-                {
-                    "source": "\u0686\u062a\u200c\u0628\u0627\u062a \u0631\u0627\u0647\u0646\u0645\u0627\u06cc \u0645\u0631\u0627\u062c\u0639\u06cc\u0646 \u0627\u062a\u0627\u0642",
-                    "target": "\u062f\u0633\u062a\u06cc\u0627\u0631\u0647\u0627\u06cc \u0647\u0648\u0634\u0645\u0646\u062f",
-                    "value": 1
-                },
-                {
-                    "source": "\u0686\u062a\u200c\u0628\u0627\u062a \u06a9\u0627\u0644 \u0633\u0646\u062a\u0631",
-                    "target": "\u062f\u0633\u062a\u06cc\u0627\u0631\u0647\u0627\u06cc \u0647\u0648\u0634\u0645\u0646\u062f",
-                    "value": 1
-                },
-                {
-                    "source": "\u06a9\u062a\u0627\u0628 \u0633\u0627\u0644 \u0628\u0627\u0632\u0631\u06af\u0627\u0646\u06cc \u0627\u06cc\u0631\u0627\u0646",
-                    "target": "\u062a\u0648\u0644\u06cc\u062f \u0645\u062d\u062a\u0648\u0627\u06cc \u062f\u0627\u062f\u0647 \u0645\u062d\u0648\u0631",
-                    "value": 1
-                },
-                {
-                    "source": "\u06a9\u062f \u06a9\u0627\u0644\u0627 \u06cc\u0627\u0628",
-                    "target": "\u062f\u0633\u062a\u06cc\u0627\u0631\u0647\u0627\u06cc \u0647\u0648\u0634\u0645\u0646\u062f",
-                    "value": 1
-                }
-            ],
-            "left": "5%",
-            "top": "12%",
-            "right": "22%",
-            "bottom": "5%",
-            "nodeWidth": 20,
-            "nodeGap": 18,
-            "nodeAlign": "justify",
-            "orient": "horizontal",
-            "draggable": true,
-            "zoom": 1,
-            "roam": false,
-            "label": {
-                "position": "right",
-                "fontFamily": "Vazirmatn",
-                "fontSize": 12,
-                "color": "#000",
-                "textBorderWidth": 0,
-                "textShadowBlur": 0
-            },
-            "lineStyle": {
-                "show": false,
-                "opacity": 0.3,
-                "curveness": 0.5,
-                "color": "source"
-            },
-            "emphasis": {
-                "disabled": false,
-                "scale": true,
-                "focus": "trajectory",
-                "blurScope": "coordinateSystem",
-                "labelLine": {
-                    "show": false
-                }
-            }
-        }
-    ],
-    "legend": [
-        {
-            "data": [
-                ""
-            ],
-            "selected": {},
-            "show": true,
-            "padding": 5,
-            "itemGap": 10,
-            "itemWidth": 25,
-            "itemHeight": 14,
-            "backgroundColor": "transparent",
-            "borderColor": "#ccc",
-            "borderRadius": 0,
-            "pageButtonItemGap": 5,
-            "pageButtonPosition": "end",
-            "pageFormatter": "{current}/{total}",
-            "pageIconColor": "#2f4554",
-            "pageIconInactiveColor": "#aaa",
-            "pageIconSize": 15,
-            "animationDurationUpdate": 800,
-            "selector": false,
-            "selectorPosition": "auto",
-            "selectorItemGap": 7,
-            "selectorButtonGap": 10,
-            "triggerEvent": false
-        }
-    ],
-    "tooltip": {
-        "show": true,
-        "trigger": "item",
-        "triggerOn": "mousemove",
-        "axisPointer": {
-            "type": "line"
-        },
-        "showContent": true,
-        "alwaysShowContent": false,
-        "showDelay": 0,
-        "hideDelay": 100,
-        "enterable": false,
-        "confine": false,
-        "appendToBody": false,
-        "transitionDuration": 0.4,
-        "displayTransition": true,
-        "textStyle": {
-            "fontSize": 14,
-            "richInheritPlainLabel": true
-        },
-        "borderWidth": 0,
-        "padding": 5,
-        "order": "seriesAsc"
-    },
-    "title": [
-        {
-            "show": true,
-            "target": "blank",
-            "subtarget": "blank",
-            "padding": 5,
-            "itemGap": 10,
-            "textAlign": "auto",
-            "textVerticalAlign": "auto",
-            "triggerEvent": false
-        }
-    ]
-};
-        chart_e3e4cec725dd4ba2b469dcaf9621b338.setOption(option_e3e4cec725dd4ba2b469dcaf9621b338);
-            window.addEventListener('resize', function(){
-                chart_e3e4cec725dd4ba2b469dcaf9621b338.resize();
-            })
-    </script>
-</div></div>
-
+</div>
 <script>
-    var serviceData = {"پیشخوان نمای بازرگانی ایران (پایه)": {"توضیح کوتاه": "پیشخوان جامع تحلیل تجارت ایران شامل ۹ گزارش تحلیلی کلان برای رصد روند تجارت، ارزش مبادلات، کالاهای اصلی، گمرک‌ها، کشورهای فعال و تغییرات قیمت با امکان تحلیل بر اساس سال، نوع تجارت و شاخص‌های دلاری، ریالی و وزنی.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "در حال بهره‌برداری"}, "پیشخوان شرکای تجاری ایران (پایه)": {"توضیح کوتاه": "ابزار تحلیل روابط تجاری ایران با کشورهای مختلف شامل بررسی حجم تجارت، سهم کشورها، تراز تجاری، گمرک‌های فعال و کالاهای اصلی تجارت با قابلیت تحلیل سالانه بر اساس کشور، گروه کشورها و شاخص‌های مختلف تجاری.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "در حال بهره‌برداری"}, "پیشخوان آمار گمرک های ایران (پایه)": {"توضیح کوتاه": "پیشخوان تحلیلی عملکرد گمرک‌های کشور شامل تحلیل جریان واردات و صادرات، سهم هر گمرک از تجارت ایران، تراز تجاری، کشورهای هدف و کالاهای اصلی مبادله‌شده با امکان فیلتر و مقایسه گمرک‌ها.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "در حال بهره‌برداری"}, "پیشخوان کالاهای تجاری ایران (پایه)": {"توضیح کوتاه": "سامانه تحلیل تجارت کالا با امکان بررسی روند تجارت هر کالا، سهم از تجارت کشور، تراز تجاری، بازارهای هدف، گمرک‌های فعال و قیمت واحد کالا بر اساس کد تعرفه، گروه صنعتی و شاخص‌های تجاری مختلف.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "در حال بهره‌برداری"}, "پیشخوان نمای بازرگانی ایران (پیشرفته)": {"توضیح کوتاه": "نسخه پیشرفته تحلیل تجارت ایران با امکانات گزارش‌سازی حرفه‌ای، تحلیل‌های عمیق‌تر و دسترسی به داده‌های تخصصی برای تصمیم‌سازی مدیریتی و تحلیل بازار.", "بستر": "داخلی اتاق تهران (ویژه معاونت امور بین الملل)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": " اتاق بازرگانی", "وضعیت": "آماده ارائه"}, "پیشخوان شرکای تجاری ایران (پیشرفته)": {"توضیح کوتاه": "سامانه تخصصی تحلیل شرکای تجاری با قابلیت مقایسه بازارها، تحلیل روند مبادلات و شناسایی فرصت‌های همکاری تجاری در سطح بین‌المللی.", "بستر": "داخلی اتاق تهران (ویژه معاونت امور بین الملل)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": " اتاق بازرگانی", "وضعیت": "آماده ارائه"}, "پیشخوان آمار گمرک های ایران (پیشرفته)": {"توضیح کوتاه": "ابزار پیشرفته تحلیل داده‌های گمرکی برای پایش دقیق‌تر جریان تجارت و استخراج گزارش‌های مدیریتی و تصمیم‌ساز در حوزه تجارت خارجی.", "بستر": "داخلی اتاق تهران (ویژه معاونت امور بین الملل)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": " اتاق بازرگانی", "وضعیت": "آماده ارائه"}, "پیشخوان کالاهای تجاری ایران (پیشرفته)": {"توضیح کوتاه": "سامانه حرفه‌ای تحلیل بازار و کالاهای تجاری با قابلیت شناسایی روندها، مقایسه بازارها و تحلیل رفتار کالاها در تجارت خارجی.", "بستر": "داخلی اتاق تهران (ویژه معاونت امور بین الملل)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": " اتاق بازرگانی", "وضعیت": "آماده ارائه"}, "تاریخچه تغییرات حقوق گمرکی کالاها": {"توضیح کوتاه": "ابزار رصد تغییرات تعرفه و حقوق گمرکی کالاها برای تحلیل اثر تغییر مقررات و کمک به تصمیم‌گیری تجاری دقیق‌تر و کم‌ریسک‌تر.", "بستر": "داخلی اتاق تهران (شورای گفتگو)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "اتاق بازرگانی", "وضعیت": "قابل ارائه کوتاه‌مدت"}, "بولتن هفتگی بازرگانی": {"توضیح کوتاه": "خبرنامه ی تک‌صفحه‌ای تحلیلی هفتگی شامل مهم‌ترین اخبار، آمار و روندهای تجارت و اقتصاد برای اطلاع‌رسانی سریع و کاربردی به فعالان اقتصادی.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "تولید توسط آری + انتشار توسط اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "در حال بهره‌برداری"}, "پست های اینستاگرامی": {"توضیح کوتاه": "تولید محتوای گرافیکی و داده‌محور برای شبکه‌های اجتماعی با هدف ارائه ساده و سریع تحلیل‌های تجاری و اقتصادی.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "تولید توسط آری + انتشار توسط اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "در حال بهره‌برداری"}, "کتاب سال بازرگانی ایران": {"توضیح کوتاه": "سـندی تحلیلـی و جامـع بـرای بررسـی وضعیـت تجـارت خارجـی ایـران در کل یک سـال اسـت. ایـن کتـاب نه‌تنهـا بـه تحلیـل دقیـق و بـه‌روز داده‌هـای بازرگانـی ایـران می پـردازد، بلکـه بـا ترکیـب آمـار و تحلیل‌هـای میدانـی، پیش‌بینی‌هـای آتـی و نـکات کلیـدی بـرای تصمیم‌گیرنـدگان ارشـد اقتصـادی و بازرگانـی، تجویزهایی ارزشـمند و کاربردی ارائه دهد.", "بستر": "سایت اتاق تهران-اتاق دیجیتال ", "مدل": "تولید توسط آری + انتشار توسط اتاق", "مخاطب": "بازرگان‌ها- اتاق بازرگانی", "وضعیت": "قابل ارائه کوتاه‌مدت"}, "تدوین بولتن بازرگانی داده محور (هفتگی/ماهانه/فصلی/سالانه)": {"توضیح کوتاه": "بسته بولتن هایی دوره ای از گزارش های داده محور، آمار، تحلیل وضعیت و خبرهای بازرگانی که به صورت هفتگی، ماهانه، فصلی و سالانه برای استفاده همه ذینفعان اکوسیستم بازرگانی ایران تهیه و منتشر می شود", "بستر": "سایت اتاق تهران-اتاق دیجیتال ", "مدل": "تولید توسط آری + انتشار توسط اتاق", "مخاطب": "بازرگان‌ها- اتاق بازرگانی", "وضعیت": "آماده ارائه"}, "طبقه بندی اعضای اتاق تهران": {"توضیح کوتاه": "سامانه تحلیل و دسته‌بندی اعضا بر اساس نوع فعالیت و رفتار تجاری برای کمک به ارائه خدمات هدفمندتر و تصمیم‌گیری بهتر مدیریتی.", "بستر": "داخلی اتاق تهران\n (ویژه معاونت توسعه)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "اتاق بازرگانی", "وضعیت": "آماده ارائه"}, "ارائه پروفایل تفصیلی بازرگان ": {"توضیح کوتاه": "پروفایل اختصاصی و داده‌محور هر عضو شامل اطلاعات فعالیت، سوابق و رفتار تجاری برای ارائه خدمات شخصی‌سازی‌شده به بازرگانان.", "بستر": "سامانه اتاق دیجیتال\n (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "آماده ارائه"}, "سیگنال یاب بازرگانی": {"توضیح کوتاه": "سامانه شناسایی تغییرات و نوسانات مهم بازار بر پایه تحلیل داده‌های تجارت و گمرک برای کشف سریع فرصت‌ها و ریسک‌های تجاری.", "بستر": "سامانه اتاق دیجیتال (اختصاصی آری)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها- اتاق بازرگانی", "وضعیت": "قابل ارائه کوتاه‌مدت"}, "پیشنهاد هیئت‌های تجاری": {"توضیح کوتاه": "ابزار تحلیل و پیشنهاد هوشمند بازارها و بازرگانان مناسب برای برنامه‌ریزی نمایشگاه‌ها و هیئت‌های تجاری بین‌المللی.", "بستر": "داخلی (ویژه معاونت امور بین الملل)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "اتاق بازرگانی", "وضعیت": "آماده ارائه"}, "چت‌بات راهنمای مراجعین اتاق": {"توضیح کوتاه": "دستیار هوشمند پاسخگویی و راهنمایی کاربران درباره خدمات، فرآیندها و سرویس‌های اتاق بازرگانی به‌صورت آنلاین و سریع.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "قابل ارائه کوتاه‌مدت"}, "دستیار هوشمند تحلیل داده‌های تجارت": {"توضیح کوتاه": "دستیار هوشمند تحلیل تجارت که به کاربران امکان می‌دهد بدون نیاز به کار با پیشخوانهای پیچیده، سوال یا تحلیل موردنظر خود را به‌صورت مکالمه‌ای مطرح کرده و پاسخ را مستقیماً از داده‌ها و پیشخوان‌های تحلیلی دریافت کنند.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "قابل ارائه کوتاه‌مدت"}, "دستیار هوشمند مقررات تجارت": {"توضیح کوتاه": "دستیار هوشمند پاسخگویی و تحلیل مقررات تجاری که با استفاده از بانک دانش مقررات رسمی سازمان‌هایی مانند وزارت صمت، گمرک، بانک مرکزی و سازمان غذا و دارو، به سوالات بازرگانان پاسخ داده و مقررات، الزامات و مستندات رسمی مرتبط را به‌صورت دقیق و قابل استناد ارائه می‌کند.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها- اتاق بازرگانی", "وضعیت": "قابل ارائه کوتاه‌مدت"}, "کد کالا یاب": {"توضیح کوتاه": "دستیار هوشمند شناسایی کد تعرفه کالا (HSCode) که با درک مفهوم و کاربرد کالا، کدهای تعرفه مرتبط را متناسب با حوزه تجاری و توضیحات کاربر پیشنهاد می‌کند.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "قابل ارائه کوتاه‌مدت"}, "چت‌بات کال سنتر": {"توضیح کوتاه": "دستیار هوشمند پاسخگویی و ثبت درخواست که اطلاعات مورد نیاز مراجعان را دریافت و فرآیند ثبت و ارجاع تیکت را به‌صورت سیستماتیک انجام می‌دهد.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "قابل ارائه کوتاه‌مدت"}};
-    
-    setTimeout(function() {
-        var chartDom = document.getElementsByClassName('chart-container')[0];
-        var myChart = echarts.getInstanceByDom(chartDom);
-        
-        if (myChart) {
-            myChart.on('click', function (params) {
-                if (params.dataType === 'node') {
-                    var name = params.name;
-                    var data = serviceData[name];
-                    var sidebar = document.getElementById('content-area');
-                    
-                    if (data) {
-                        sidebar.innerHTML = `
-                            <h2>${name}</h2>
-                            <div class="info-group">
-                                <span class="info-label">توضیح کوتاه</span>
-                                <div class="info-text">${data['توضیح کوتاه']}</div>
-                            </div>
-                            <div class="info-group">
-                                <span class="info-label">بستر و سطح دسترسی</span>
-                                <div class="info-text">${data['بستر']}</div>
-                            </div>
-                            <div class="info-group">
-                                <span class="info-label">مدل استقرار و بهره‌برداری</span>
-                                <div class="info-text">${data['مدل']}</div>
-                            </div>
-                            <div class="info-group">
-                                <span class="info-label">مخاطب نهایی</span>
-                                <div class="info-text">${data['مخاطب']}</div>
-                            </div>
-                            <div class="info-group" style="border:none">
-                                <span class="info-label">وضعیت آمادگی ارائه</span>
-                                <div class="info-text" style="color:#e76f51; font-weight:bold;">${data['وضعیت']}</div>
-                            </div>
-                        `;
-                    } else {
-                        sidebar.innerHTML = `
-                            <h2>${name}</h2>
-                            <p class="empty-state">اطلاعات تکمیلی برای این گره موجود نیست.</p>
-                        `;
-                    }
-                }
-            });
-        }
-    }, 1000);
+var serviceData = {"پیشخوان نمای بازرگانی ایران (پایه)": {"توضیح کوتاه": "پیشخوان جامع تحلیل تجارت ایران شامل ۹ گزارش تحلیلی کلان برای رصد روند تجارت، ارزش مبادلات، کالاهای اصلی، گمرک‌ها، کشورهای فعال و تغییرات قیمت با امکان تحلیل بر اساس سال، نوع تجارت و شاخص‌های دلاری، ریالی و وزنی.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "در حال بهره‌برداری"}, "پیشخوان شرکای تجاری ایران (پایه)": {"توضیح کوتاه": "ابزار تحلیل روابط تجاری ایران با کشورهای مختلف شامل بررسی حجم تجارت، سهم کشورها، تراز تجاری، گمرک‌های فعال و کالاهای اصلی تجارت با قابلیت تحلیل سالانه بر اساس کشور، گروه کشورها و شاخص‌های مختلف تجاری.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "در حال بهره‌برداری"}, "پیشخوان آمار گمرک های ایران (پایه)": {"توضیح کوتاه": "پیشخوان تحلیلی عملکرد گمرک‌های کشور شامل تحلیل جریان واردات و صادرات، سهم هر گمرک از تجارت ایران، تراز تجاری، کشورهای هدف و کالاهای اصلی مبادله‌شده با امکان فیلتر و مقایسه گمرک‌ها.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "در حال بهره‌برداری"}, "پیشخوان کالاهای تجاری ایران (پایه)": {"توضیح کوتاه": "سامانه تحلیل تجارت کالا با امکان بررسی روند تجارت هر کالا، سهم از تجارت کشور، تراز تجاری، بازارهای هدف، گمرک‌های فعال و قیمت واحد کالا بر اساس کد تعرفه، گروه صنعتی و شاخص‌های تجاری مختلف.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "در حال بهره‌برداری"}, "پیشخوان نمای بازرگانی ایران (پیشرفته)": {"توضیح کوتاه": "نسخه پیشرفته تحلیل تجارت ایران با امکانات گزارش‌سازی حرفه‌ای، تحلیل‌های عمیق‌تر و دسترسی به داده‌های تخصصی برای تصمیم‌سازی مدیریتی و تحلیل بازار.", "بستر": "داخلی اتاق تهران (ویژه معاونت امور بین الملل)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": " اتاق بازرگانی", "وضعیت": "آماده ارائه"}, "پیشخوان شرکای تجاری ایران (پیشرفته)": {"توضیح کوتاه": "سامانه تخصصی تحلیل شرکای تجاری با قابلیت مقایسه بازارها، تحلیل روند مبادلات و شناسایی فرصت‌های همکاری تجاری در سطح بین‌المللی.", "بستر": "داخلی اتاق تهران (ویژه معاونت امور بین الملل)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": " اتاق بازرگانی", "وضعیت": "آماده ارائه"}, "پیشخوان آمار گمرک های ایران (پیشرفته)": {"توضیح کوتاه": "ابزار پیشرفته تحلیل داده‌های گمرکی برای پایش دقیق‌تر جریان تجارت و استخراج گزارش‌های مدیریتی و تصمیم‌ساز در حوزه تجارت خارجی.", "بستر": "داخلی اتاق تهران (ویژه معاونت امور بین الملل)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": " اتاق بازرگانی", "وضعیت": "آماده ارائه"}, "پیشخوان کالاهای تجاری ایران (پیشرفته)": {"توضیح کوتاه": "سامانه حرفه‌ای تحلیل بازار و کالاهای تجاری با قابلیت شناسایی روندها، مقایسه بازارها و تحلیل رفتار کالاها در تجارت خارجی.", "بستر": "داخلی اتاق تهران (ویژه معاونت امور بین الملل)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": " اتاق بازرگانی", "وضعیت": "آماده ارائه"}, "تاریخچه تغییرات حقوق گمرکی کالاها": {"توضیح کوتاه": "ابزار رصد تغییرات تعرفه و حقوق گمرکی کالاها برای تحلیل اثر تغییر مقررات و کمک به تصمیم‌گیری تجاری دقیق‌تر و کم‌ریسک‌تر.", "بستر": "داخلی اتاق تهران (شورای گفتگو)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "اتاق بازرگانی", "وضعیت": "قابل ارائه کوتاه‌مدت"}, "بولتن هفتگی بازرگانی": {"توضیح کوتاه": "خبرنامه ی تک‌صفحه‌ای تحلیلی هفتگی شامل مهم‌ترین اخبار، آمار و روندهای تجارت و اقتصاد برای اطلاع‌رسانی سریع و کاربردی به فعالان اقتصادی.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "تولید توسط آری + انتشار توسط اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "در حال بهره‌برداری"}, "پست های اینستاگرامی": {"توضیح کوتاه": "تولید محتوای گرافیکی و داده‌محور برای شبکه‌های اجتماعی با هدف ارائه ساده و سریع تحلیل‌های تجاری و اقتصادی.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "تولید توسط آری + انتشار توسط اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "در حال بهره‌برداری"}, "کتاب سال بازرگانی ایران": {"توضیح کوتاه": "سـندی تحلیلـی و جامـع بـرای بررسـی وضعیـت تجـارت خارجـی ایـران در کل یک سـال اسـت. ایـن کتـاب نه‌تنهـا بـه تحلیـل دقیـق و بـه‌روز داده‌هـای بازرگانـی ایـران می پـردازد، بلکـه بـا ترکیـب آمـار و تحلیل‌هـای میدانـی، پیش‌بینی‌هـای آتـی و نـکات کلیـدی بـرای تصمیم‌گیرنـدگان ارشـد اقتصـادی و بازرگانـی، تجویزهایی ارزشـمند و کاربردی ارائه دهد.", "بستر": "سایت اتاق تهران-اتاق دیجیتال ", "مدل": "تولید توسط آری + انتشار توسط اتاق", "مخاطب": "بازرگان‌ها- اتاق بازرگانی", "وضعیت": "قابل ارائه کوتاه‌مدت"}, "تدوین بولتن بازرگانی داده محور ": {"توضیح کوتاه": "بسته بولتن هایی دوره ای از گزارش های داده محور، آمار، تحلیل وضعیت و خبرهای بازرگانی که به صورت هفتگی، ماهانه، فصلی و سالانه برای استفاده همه ذینفعان اکوسیستم بازرگانی ایران تهیه و منتشر می شود", "بستر": "سایت اتاق تهران-اتاق دیجیتال ", "مدل": "تولید توسط آری + انتشار توسط اتاق", "مخاطب": "بازرگان‌ها- اتاق بازرگانی", "وضعیت": "آماده ارائه"}, "طبقه بندی اعضای اتاق تهران": {"توضیح کوتاه": "سامانه تحلیل و دسته‌بندی اعضا بر اساس نوع فعالیت و رفتار تجاری برای کمک به ارائه خدمات هدفمندتر و تصمیم‌گیری بهتر مدیریتی.", "بستر": "داخلی اتاق تهران\n (ویژه معاونت توسعه)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "اتاق بازرگانی", "وضعیت": "آماده ارائه"}, "ارائه پروفایل تفصیلی بازرگان ": {"توضیح کوتاه": "پروفایل اختصاصی و داده‌محور هر عضو شامل اطلاعات فعالیت، سوابق و رفتار تجاری برای ارائه خدمات شخصی‌سازی‌شده به بازرگانان.", "بستر": "سامانه اتاق دیجیتال\n (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "آماده ارائه"}, "سیگنال یاب بازرگانی": {"توضیح کوتاه": "سامانه شناسایی تغییرات و نوسانات مهم بازار بر پایه تحلیل داده‌های تجارت و گمرک برای کشف سریع فرصت‌ها و ریسک‌های تجاری.", "بستر": "سامانه اتاق دیجیتال (اختصاصی آری)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها- اتاق بازرگانی", "وضعیت": "قابل ارائه کوتاه‌مدت"}, "پیشنهاد هیئت‌های تجاری": {"توضیح کوتاه": "ابزار تحلیل و پیشنهاد هوشمند بازارها و بازرگانان مناسب برای برنامه‌ریزی نمایشگاه‌ها و هیئت‌های تجاری بین‌المللی.", "بستر": "داخلی (ویژه معاونت امور بین الملل)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "اتاق بازرگانی", "وضعیت": "آماده ارائه"}, "چت‌بات راهنمای مراجعین اتاق": {"توضیح کوتاه": "دستیار هوشمند پاسخگویی و راهنمایی کاربران درباره خدمات، فرآیندها و سرویس‌های اتاق بازرگانی به‌صورت آنلاین و سریع.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "قابل ارائه کوتاه‌مدت"}, "دستیار هوشمند تحلیل داده‌های تجارت": {"توضیح کوتاه": "دستیار هوشمند تحلیل تجارت که به کاربران امکان می‌دهد بدون نیاز به کار با پیشخوانهای پیچیده، سوال یا تحلیل موردنظر خود را به‌صورت مکالمه‌ای مطرح کرده و پاسخ را مستقیماً از داده‌ها و پیشخوان‌های تحلیلی دریافت کنند.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "قابل ارائه کوتاه‌مدت"}, "دستیار هوشمند مقررات تجارت": {"توضیح کوتاه": "دستیار هوشمند پاسخگویی و تحلیل مقررات تجاری که با استفاده از بانک دانش مقررات رسمی سازمان‌هایی مانند وزارت صمت، گمرک، بانک مرکزی و سازمان غذا و دارو، به سوالات بازرگانان پاسخ داده و مقررات، الزامات و مستندات رسمی مرتبط را به‌صورت دقیق و قابل استناد ارائه می‌کند.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها- اتاق بازرگانی", "وضعیت": "قابل ارائه کوتاه‌مدت"}, "کد کالا یاب": {"توضیح کوتاه": "دستیار هوشمند شناسایی کد تعرفه کالا (HSCode) که با درک مفهوم و کاربرد کالا، کدهای تعرفه مرتبط را متناسب با حوزه تجاری و توضیحات کاربر پیشنهاد می‌کند.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "قابل ارائه کوتاه‌مدت"}, "چت‌بات کال سنتر": {"توضیح کوتاه": "دستیار هوشمند پاسخگویی و ثبت درخواست که اطلاعات مورد نیاز مراجعان را دریافت و فرآیند ثبت و ارجاع تیکت را به‌صورت سیستماتیک انجام می‌دهد.", "بستر": "سامانه اتاق دیجیتال (عمومی)", "مدل": "میزبانی توسط آری + ارائه از طریق اتاق", "مخاطب": "بازرگان‌ها", "وضعیت": "قابل ارائه کوتاه‌مدت"}};
+function statusClass(s) {
+    if (!s) return 's-soon';
+    if (s.includes('بهره')) return 's-active';
+    if (s.includes('آماده')) return 's-ready';
+    return 's-soon';
+}
+function renderService(name) {
+    var d = serviceData[name];
+    var area = document.getElementById('content-area');
+    if (!d) return;
+    var sc = statusClass(d['وضعیت']);
+    area.innerHTML = `<div class="svc-card">
+        <div class="svc-title-block">
+            <div class="svc-name">${name}</div>
+            <span class="sbadge ${sc}"><span class="sbadge-dot"></span>${d['وضعیت']}</span>
+        </div>
+        <div class="svc-desc-block"><div class="block-label">توضیح خدمت</div><div class="svc-desc">${d['توضیح کوتاه']}</div></div>
+        <div class="svc-meta">
+            <div class="meta-row"><span class="block-label">مخاطب نهایی</span><span class="meta-val">${d['مخاطب']}</span></div>
+            <div class="meta-row"><span class="block-label">بستر</span><span class="meta-val">${d['بستر']}</span></div>
+            <div class="meta-row"><span class="block-label">مدل استقرار</span><span class="meta-val">${d['مدل']}</span></div>
+        </div>
+    </div>`;
+}
+var chart = echarts.init(document.getElementById('chart-canvas'));
+var option = {
+    series: [{
+        type: 'sankey',
+        data: [{"name": "اتاق دیجیتال", "itemStyle": {"color": "#023047"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "معاونت امور بین الملل", "itemStyle": {"color": "#219EBC"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "شورای گفتگو", "itemStyle": {"color": "#8ECAE6"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "روابط عمومی اتاق تهران", "itemStyle": {"color": "#FFB703"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "معاونت توسعه عضویت", "itemStyle": {"color": "#cccccc"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "مرکز نوآوری", "itemStyle": {"color": "#7E9B8A"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "معاونت مطالعات اقتصادی ", "itemStyle": {"color": "#9E8070"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "پیشخوان نمای بازرگانی ایران (پایه)", "itemStyle": {"color": "#264653"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "پیشخوان شرکای تجاری ایران (پایه)", "itemStyle": {"color": "#264653"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "پیشخوان آمار گمرک های ایران (پایه)", "itemStyle": {"color": "#264653"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "پیشخوان کالاهای تجاری ایران (پایه)", "itemStyle": {"color": "#264653"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "پیشخوان نمای بازرگانی ایران (پیشرفته)", "itemStyle": {"color": "#264653"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "پیشخوان شرکای تجاری ایران (پیشرفته)", "itemStyle": {"color": "#264653"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "پیشخوان آمار گمرک های ایران (پیشرفته)", "itemStyle": {"color": "#264653"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "پیشخوان کالاهای تجاری ایران (پیشرفته)", "itemStyle": {"color": "#264653"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "تاریخچه تغییرات حقوق گمرکی کالاها", "itemStyle": {"color": "#264653"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "بولتن هفتگی بازرگانی", "itemStyle": {"color": "#2A9D8F"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "پست های اینستاگرامی", "itemStyle": {"color": "#2A9D8F"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "کتاب سال بازرگانی ایران", "itemStyle": {"color": "#2A9D8F"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "تدوین بولتن بازرگانی داده محور ", "itemStyle": {"color": "#2A9D8F"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "طبقه بندی اعضای اتاق تهران", "itemStyle": {"color": "#E9C46A"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "ارائه پروفایل تفصیلی بازرگان ", "itemStyle": {"color": "#E9C46A"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "سیگنال یاب بازرگانی", "itemStyle": {"color": "#E9C46A"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "پیشنهاد هیئت‌های تجاری", "itemStyle": {"color": "#E9C46A"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "چت‌بات راهنمای مراجعین اتاق", "itemStyle": {"color": "#F4A261"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "دستیار هوشمند تحلیل داده‌های تجارت", "itemStyle": {"color": "#F4A261"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "دستیار هوشمند مقررات تجارت", "itemStyle": {"color": "#F4A261"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "کد کالا یاب", "itemStyle": {"color": "#F4A261"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "چت‌بات کال سنتر", "itemStyle": {"color": "#F4A261"}, "label": {"position": "right", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "پیشخوان‌های تحلیلی", "itemStyle": {"color": "#264653"}, "label": {"position": "left", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "تولید محتوای داده محور", "itemStyle": {"color": "#2A9D8F"}, "label": {"position": "left", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "بینش داده محور", "itemStyle": {"color": "#E9C46A"}, "label": {"position": "left", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}, {"name": "دستیارهای هوشمند", "itemStyle": {"color": "#F4A261"}, "label": {"position": "left", "textBorderWidth": 0, "textShadowBlur": 0, "fontFamily": "Vazirmatn", "fontSize": 11.5, "fontWeight": 500}}],
+        links: [{"source": "اتاق دیجیتال", "target": "بولتن هفتگی بازرگانی", "value": 1}, {"source": "اتاق دیجیتال", "target": "دستیار هوشمند تحلیل داده‌های تجارت", "value": 1}, {"source": "اتاق دیجیتال", "target": "پست های اینستاگرامی", "value": 1}, {"source": "اتاق دیجیتال", "target": "پیشخوان آمار گمرک های ایران (پایه)", "value": 1}, {"source": "اتاق دیجیتال", "target": "پیشخوان شرکای تجاری ایران (پایه)", "value": 1}, {"source": "اتاق دیجیتال", "target": "پیشخوان نمای بازرگانی ایران (پایه)", "value": 1}, {"source": "اتاق دیجیتال", "target": "پیشخوان کالاهای تجاری ایران (پایه)", "value": 1}, {"source": "اتاق دیجیتال", "target": "کد کالا یاب", "value": 1}, {"source": "روابط عمومی اتاق تهران", "target": "تدوین بولتن بازرگانی داده محور ", "value": 1}, {"source": "روابط عمومی اتاق تهران", "target": "کتاب سال بازرگانی ایران", "value": 1}, {"source": "شورای گفتگو", "target": "تاریخچه تغییرات حقوق گمرکی کالاها", "value": 1}, {"source": "مرکز نوآوری", "target": "ارائه پروفایل تفصیلی بازرگان ", "value": 1}, {"source": "مرکز نوآوری", "target": "دستیار هوشمند مقررات تجارت", "value": 1}, {"source": "مرکز نوآوری", "target": "چت‌بات راهنمای مراجعین اتاق", "value": 1}, {"source": "مرکز نوآوری", "target": "چت‌بات کال سنتر", "value": 1}, {"source": "معاونت امور بین الملل", "target": "پیشخوان آمار گمرک های ایران (پیشرفته)", "value": 1}, {"source": "معاونت امور بین الملل", "target": "پیشخوان شرکای تجاری ایران (پیشرفته)", "value": 1}, {"source": "معاونت امور بین الملل", "target": "پیشخوان نمای بازرگانی ایران (پیشرفته)", "value": 1}, {"source": "معاونت امور بین الملل", "target": "پیشخوان کالاهای تجاری ایران (پیشرفته)", "value": 1}, {"source": "معاونت امور بین الملل", "target": "پیشنهاد هیئت‌های تجاری", "value": 1}, {"source": "معاونت توسعه عضویت", "target": "طبقه بندی اعضای اتاق تهران", "value": 1}, {"source": "معاونت مطالعات اقتصادی ", "target": "سیگنال یاب بازرگانی", "value": 1}, {"source": "ارائه پروفایل تفصیلی بازرگان ", "target": "بینش داده محور", "value": 1}, {"source": "بولتن هفتگی بازرگانی", "target": "تولید محتوای داده محور", "value": 1}, {"source": "تاریخچه تغییرات حقوق گمرکی کالاها", "target": "پیشخوان‌های تحلیلی", "value": 1}, {"source": "تدوین بولتن بازرگانی داده محور ", "target": "تولید محتوای داده محور", "value": 1}, {"source": "دستیار هوشمند تحلیل داده‌های تجارت", "target": "دستیارهای هوشمند", "value": 1}, {"source": "دستیار هوشمند مقررات تجارت", "target": "دستیارهای هوشمند", "value": 1}, {"source": "سیگنال یاب بازرگانی", "target": "بینش داده محور", "value": 1}, {"source": "طبقه بندی اعضای اتاق تهران", "target": "بینش داده محور", "value": 1}, {"source": "پست های اینستاگرامی", "target": "تولید محتوای داده محور", "value": 1}, {"source": "پیشخوان آمار گمرک های ایران (پایه)", "target": "پیشخوان‌های تحلیلی", "value": 1}, {"source": "پیشخوان آمار گمرک های ایران (پیشرفته)", "target": "پیشخوان‌های تحلیلی", "value": 1}, {"source": "پیشخوان شرکای تجاری ایران (پایه)", "target": "پیشخوان‌های تحلیلی", "value": 1}, {"source": "پیشخوان شرکای تجاری ایران (پیشرفته)", "target": "پیشخوان‌های تحلیلی", "value": 1}, {"source": "پیشخوان نمای بازرگانی ایران (پایه)", "target": "پیشخوان‌های تحلیلی", "value": 1}, {"source": "پیشخوان نمای بازرگانی ایران (پیشرفته)", "target": "پیشخوان‌های تحلیلی", "value": 1}, {"source": "پیشخوان کالاهای تجاری ایران (پایه)", "target": "پیشخوان‌های تحلیلی", "value": 1}, {"source": "پیشخوان کالاهای تجاری ایران (پیشرفته)", "target": "پیشخوان‌های تحلیلی", "value": 1}, {"source": "پیشنهاد هیئت‌های تجاری", "target": "بینش داده محور", "value": 1}, {"source": "چت‌بات راهنمای مراجعین اتاق", "target": "دستیارهای هوشمند", "value": 1}, {"source": "چت‌بات کال سنتر", "target": "دستیارهای هوشمند", "value": 1}, {"source": "کتاب سال بازرگانی ایران", "target": "تولید محتوای داده محور", "value": 1}, {"source": "کد کالا یاب", "target": "دستیارهای هوشمند", "value": 1}],
+        left: "8%", top: "60px", right: "12%", bottom: "5%",
+        nodeWidth: 20, nodeGap: 18,
+        lineStyle: { opacity: 0.18, curveness: 0.5, color: 'source' },
+        emphasis: { focus: 'trajectory' }
+    }]
+};
+chart.setOption(option);
+function positionHeaders() {
+    const W = document.getElementById('chart-wrap').clientWidth;
+    const s = option.series[0];
+    const pos = [parseFloat(s.left)/100, (parseFloat(s.left)+100-parseFloat(s.right))/200, (100-parseFloat(s.right))/100];
+    ['hdr-left','hdr-mid','hdr-right'].forEach((id, i) => document.getElementById(id).style.left = (pos[i]*W)+'px');
+}
+positionHeaders();
+chart.on('click', p => p.dataType === 'node' && renderService(p.name));
+window.onresize = () => { chart.resize(); positionHeaders(); };
 </script>
-
 </body>
 </html>
