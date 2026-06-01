@@ -24,6 +24,24 @@
     .info-text { color: #555; font-size: 0.95rem; line-height: 1.7; text-align: justify; }
     h2 { color: #2a9d8f; font-size: 1.3rem; margin-top: 0; line-height: 1.4; border-right: 5px solid #e9c46a; padding-right: 12px; }
     .empty-state { color: #aaa; text-align: center; margin-top: 100px; line-height: 2; }
+    
+    .column-headers {
+        position: absolute;
+        top: 25px;
+        left: 5%; 
+        right: 22%; 
+        height: 40px;
+        z-index: 50;
+        pointer-events: none;
+    }
+    .header-badge {
+        position: absolute;
+        color: #264653;
+        font-weight: 700;
+        font-size: 1.1rem;
+        white-space: nowrap;
+        transform: translateX(calc(-50% + 10px));
+    }
 </style>
 
 <div id="wrapper">
@@ -35,12 +53,17 @@
         </div>
     </div>
     <div id="chart-area">
+        <div class="column-headers">
+            <div class="header-badge" style="left: 0;">واحد درخواست‌دهنده</div>
+            <div class="header-badge" style="left: 50%;">نام خدمت</div>
+            <div class="header-badge" style="left: 100%;">دسته‌بندی کلان</div>
+        </div>
 
-    <div id="89211e5330f54b7ebb83c1618965d26e" class="chart-container" style="width:100%; height:100vh; "></div>
+    <div id="e3e4cec725dd4ba2b469dcaf9621b338" class="chart-container" style="width:100%; height:100vh; "></div>
     <script>
-        var chart_89211e5330f54b7ebb83c1618965d26e = echarts.init(
-            document.getElementById('89211e5330f54b7ebb83c1618965d26e'), 'white', {renderer: 'canvas', locale: 'ZH'});
-        var option_89211e5330f54b7ebb83c1618965d26e = {
+        var chart_e3e4cec725dd4ba2b469dcaf9621b338 = echarts.init(
+            document.getElementById('e3e4cec725dd4ba2b469dcaf9621b338'), 'white', {renderer: 'canvas', locale: 'ZH'});
+        var option_e3e4cec725dd4ba2b469dcaf9621b338 = {
     "animation": true,
     "animationThreshold": 2000,
     "animationDuration": 1000,
@@ -478,8 +501,8 @@
                 }
             ],
             "left": "5%",
-            "top": "5%",
-            "right": "20%",
+            "top": "12%",
+            "right": "22%",
             "bottom": "5%",
             "nodeWidth": 20,
             "nodeGap": 18,
@@ -578,9 +601,9 @@
         }
     ]
 };
-        chart_89211e5330f54b7ebb83c1618965d26e.setOption(option_89211e5330f54b7ebb83c1618965d26e);
+        chart_e3e4cec725dd4ba2b469dcaf9621b338.setOption(option_e3e4cec725dd4ba2b469dcaf9621b338);
             window.addEventListener('resize', function(){
-                chart_89211e5330f54b7ebb83c1618965d26e.resize();
+                chart_e3e4cec725dd4ba2b469dcaf9621b338.resize();
             })
     </script>
 </div></div>
